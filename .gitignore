@@ -1,0 +1,22 @@
+# Blender files
+*.blend
+*.blend1
+*.blend[0-9]
+*.blend[0-9][0-9]
+*.blend.zip
+*.blend.gz
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Other
+*.zip
+*.rar
+*.7z
+*.log
+*.swp
+*.swo
+Readme.docx
