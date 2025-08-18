@@ -1,175 +1,156 @@
-# Blender スカルプト/モデリングツール集
-
-Blenderのスカルプトとモデリングのワークフローを高速化することを目的とした、自作アドオンのコレクションです。
-
-## 動作環境
-
-- Blender 4.4で動作確認済み
-
-## インストール方法
-
-必要なアドオンの`.py`ファイルのみを個別にインストールすることを想定しています。
-
-1.  このリポジトリから、使用したいアドオンの`.py`ファイルをダウンロードします。
-2.  Blenderを起動し、`編集` > `プリファレンス` > `アドオン` を開きます。
-3.  `インストール`ボタンを押し、ダウンロードした`.py`ファイルを選択します。
-4.  インストールされたアドオンにチェックを入れて有効化します。
-
-## 収録アドオン一覧
-
-1.  [Bezier Draw Tool with Effects](#1-bezier-draw-tool-with-effects)
-2.  [Curve Subdivide & Decimate](#2-curve-subdivide--decimate)
-3.  [Edge Creation Tool](#3-edge-creation-tool)
-4.  [PolyMaker Tool](#4-polymaker-tool)
-5.  [Language Switcher](#5-language-switcher)
-6.  [Voxel Remesh and Sculpt](#6-voxel-remesh-and-sculpt)
+# Blender Sculpt / Modeling Tools Collection  
+# Blender スカルプト / モデリングツール集
 
 ---
 
-## 1. Bezier Draw Tool with Effects
+## Overview  
+This is a collection of custom Blender addons designed to accelerate sculpting and modeling workflows.  
 
-3Dビュー上で直感的にベジェ曲線を描画し、多彩なエフェクトを適用できるツールです。
-
-**バージョン:** 1.4.5
-**パネル:** 3Dビュー > UIシェルフ > Sculpt Tools
-
-### 主な機能
-
--   **描画機能:**
-    -   `Start Drawing`: 新しいベジェカーブオブジェクトを作成し、描画モードを開始します。カーブには自動的にベベルが設定されます。
-    -   `Finish Drawing`: 描画を終了し、オブジェクトモードに戻ります。
--   **編集モード用エフェクト (選択ポイントに適用):**
-    -   `Spiral Points`: 選択した制御点をスパイラル状に配置します。半径、回転数、軸、ハンドルのスケールを調整可能です。
-    -   `Scale Variation`: 選択した制御点の半径（太さ）にバリエーションを与えます。一定、リニア、波形から選択できます。
-    -   `Rotate Variation`: 選択した制御点に連続的な回転（チルト）を追加します。
-    -   `Smooth Points`: 選択した制御点のハンドルをスムーズにします。ハンドルのタイプ（自動、ベクトル、整列など）やスケールを調整できます。
--   **オブジェクトモード用エフェクト (カーブ全体に適用):**
-    -   `Scale Variation (Object Mode)`: オブジェクトモードでカーブ全体のポイントの太さを一括で変更します。
-        -   **モード:** 一定、リニア、サイン波、二次関数、三角リニア、三角スムーズなど、多彩な変化パターンを選択できます。
-        -   **ツイスト:** カーブにねじれを加えます。
-        -   **スパイラル:** カーブ全体をスパイラル形状に変形します。
+Blenderのスカルプトとモデリングのワークフローを高速化することを目的とした、自作アドオンのコレクションです。  
 
 ---
 
-## 2. Curve Subdivide & Decimate
+## Environment  
+- Tested with Blender 4.4  
 
-カーブのポイントを増やしたり（細分化）、減らしたり（間引き）するためのツールです。編集モードで動作します。
-
-**バージョン:** 1.0.4
-**パネル:** 3Dビュー > UIシェルフ > Sculpt Tools
-
-### 主な機能
-
--   **Subdivide Curve:**
-    -   カーブのセグメントを分割して、制御点を増やします。
-    -   ポイントを選択している場合はその間を、選択していない場合はカーブ全体を細分化します。
-    -   `Number of Cuts`で分割数を指定できます。
--   **Decimate Curve:**
-    -   カーブの形状をなるべく維持しながら、不要な制御点を削減します。
-    -   Ramer-Douglas-Peuckerアルゴリズムを使用しており、`Error Threshold`（許容誤差）で削減の度合いを調整できます。
-    -   ポイントを選択している場合はその範囲を、選択していない場合はカーブ全体を間引きます。
+- Blender 4.4で動作確認済み  
 
 ---
 
-## 3. Edge Creation Tool
+## Installation  
+It is assumed that you will install each addon `.py` file individually.  
 
-3Dビュー上でマウスクリックするだけで、スナップを効かせながら連続した辺を作成できるツールです。
+1. Download the `.py` file of the addon you want to use from this repository.  
+2. Launch Blender and go to `Edit > Preferences > Add-ons`.  
+3. Press the `Install` button and select the downloaded `.py` file.  
+4. Enable the installed addon in the list.  
 
-**バージョン:** 1.5
-**パネル:** 3Dビュー > UIシェルフ > Sculpt Tools
+必要なアドオンの`.py`ファイルのみを個別にインストールすることを想定しています。  
 
-### 主な機能
-
--   **Start Drawing:**
-    -   クリックした位置に頂点を追加し、前の頂点との間に辺を作成します。
-    -   他のオブジェクトのサーフェスにスナップさせることができます。
-    -   `ESC`キーまたは`右クリック`で描画を終了します。
--   **Fill Face:**
-    -   作成した辺（または選択した辺ループ）から面を生成します。
--   **Toggle Object/Edit Mode:**
-    -   オブジェクトモードと編集モードを素早く切り替えます。
+1. このリポジトリから、使用したいアドオンの`.py`ファイルをダウンロードします。  
+2. Blenderを起動し、`編集 > プリファレンス > アドオン` を開きます。  
+3. `インストール`ボタンを押し、ダウンロードした`.py`ファイルを選択します。  
+4. インストールされたアドオンにチェックを入れて有効化します。  
 
 ---
 
-## 4. PolyMaker Tool
+## Included Addons  
+1. [Bezier Draw Tool with Effects](#1-bezier-draw-tool-with-effects)  
+2. [Curve Subdivide & Decimate](#2-curve-subdivide--decimate)  
+3. [Edge Creation Tool](#3-edge-creation-tool)  
+4. [PolyMaker Tool](#4-polymaker-tool)  
+5. [Language Switcher](#5-language-switcher)  
+6. [Voxel Remesh and Sculpt](#6-voxel-remesh-and-sculpt)  
 
-ポリゴンメッシュの作成と基本的な編集をサポートするツールです。
-
-**バージョン:** 1.2
-**パネル:** 3Dビュー > UIシェルフ > Sculpt Tools
-
-### 主な機能
-
--   **New Polygon Mesh:**
-    -   空のメッシュオブジェクトを新規作成し、すぐに頂点を追加できるよう編集モードで開始します。
--   **Add Solidify:**
-    -   アクティブなメッシュオブジェクトに「厚み付け（Solidify）」モディファイアを追加します。
--   **Change Polygon Type:**
-    -   `Convert to Quads`: 三角ポリゴン面を四角ポリゴン面に変換します。
-    -   `Convert to Triangles`: 四角ポリゴン面を三角ポリゴン面に変換します。
--   **Toggle Object/Edit Mode:**
-    -   オブジェクトモードと編集モードを素早く切り替えます。
+## 収録アドオン一覧  
+1. [Bezier Draw Tool with Effects](#1-bezier-draw-tool-with-effects)  
+2. [Curve Subdivide & Decimate](#2-curve-subdivide--decimate)  
+3. [Edge Creation Tool](#3-edge-creation-tool)  
+4. [PolyMaker Tool](#4-polymaker-tool)  
+5. [Language Switcher](#5-language-switcher)  
+6. [Voxel Remesh and Sculpt](#6-voxel-remesh-and-sculpt)  
 
 ---
 
-## 5. Language Switcher
+## 1. Bezier Draw Tool with Effects  
+Draw Bezier curves intuitively in the 3D view and apply various effects.  
 
-BlenderのUI言語を日本語と英語で素早く切り替えるためのツールです。
+3Dビュー上で直感的にベジェ曲線を描画し、多彩なエフェクトを適用できるツールです。  
 
-**バージョン:** 1.1.0
-**パネル:** 3Dビュー > UIシェルフ > Sculpt Tools
+**Version:** 1.4.5  
+**Panel:** 3D View > UI Shelf > Sculpt Tools  
 
-### 主な機能
-
--   **言語切り替え:**
-    -   `Switch to Japanese`: UIを日本語に設定します。
-    -   `Switch to English`: UIを英語に設定します。
--   **翻訳オプション:**
-    -   以下の項目の翻訳を個別に有効化/無効化できます。
-        -   `Interface Translation` (インターフェース)
-        -   `Tooltips Translation` (ツールチップ)
-        -   `Report Translation` (レポート)
-        -   `New Data Translation` (新規データ名)
-
----
-
-## 6. Voxel Remesh and Sculpt
-
-複数のオブジェクトを統合し、ボクセルリメッシュをかけてスカルプトを開始するまでの一連の流れを自動化するツールです。
-
-**バージョン:** 2.2.3
-**パネル:** 3Dビュー > UIシェルフ > Sculpt Tools
-
-### 主な機能
-
--   **Voxel Remesh and Sculpt:**
-    -   選択した複数のオブジェクト（メッシュ、カーブ、メタボール等）を統合し、一つのメッシュにします。
-    -   カーブなどの非メッシュオブジェクトは自動的にメッシュに変換されます。
-    -   オブジェクトが持つモディファイアは自動で適用されます。
-    -   `Voxel Size`（ボクセルサイズ）と `Adaptivity`（適応度）を指定して、ボクセルリメッシュのプレビュー（モディファイア）を適用します。
-    -   処理後にスカルプトモードへ移行するか、オブジェクトモードのままにするかを選択できます。
--   **Apply Sculpt Remesh:**
-    -   プレビュー用のリメッシュモディファイアを削除し、スカルプトモードのRemesh機能を使って実際にメッシュを再構築します。
--   **Create Face Sets:**
-    -   選択したオブジェクトごとに「面セット（Face Set）」を作成します。これにより、統合後のメッシュでも元のオブジェクトの領域を維持でき、スカルプト作業が容易になります。
--   **Curve Convert to Mesh:**
-    -   選択したカーブオブジェクトなどをメッシュに変換します。
--   **Face Set To Mask:**
-    -   スカルプトモードで、クリックした位置にある面セットをマスクに変換します。
--   **Toggle Object/Sculpt Mode:**
-    -   オブジェクトモードとスカルプトモードを素早く切り替えます。
+### Features / 主な機能  
+- **Drawing:**  
+  - `Start Drawing`: Create a new Bezier curve and enter draw mode.  
+  - `Finish Drawing`: Exit draw mode and return to object mode.  
+- **Edit Mode Effects (apply to selected points):**  
+  - `Spiral Points`: Arrange control points in a spiral.  
+  - `Scale Variation`: Add variation to point radius.  
+  - `Rotate Variation`: Add tilt rotation to points.  
+  - `Smooth Points`: Smooth handles and adjust type/scale.  
+- **Object Mode Effects (apply to whole curve):**  
+  - `Scale Variation (Object Mode)`: Apply global thickness variation.  
+  - Includes twist and spiral transformation options.  
 
 ---
 
-## 貢献
+## 2. Curve Subdivide & Decimate  
+Tools to increase (subdivide) or reduce (decimate) curve control points. Works in Edit Mode.  
 
-バグ報告や機能改善の提案は歓迎しますが、すぐに対応できない場合があります。
+カーブのポイントを増やしたり（細分化）、減らしたり（間引き）するためのツールです。編集モードで動作します。  
 
-## ライセンス
+**Version:** 1.0.4  
+**Panel:** 3D View > UI Shelf > Sculpt Tools  
 
-このプロジェクトはMITライセンスの下で公開されています。詳細は`LICENSE`ファイルをご覧ください。
+### Features / 主な機能  
+- **Subdivide Curve:**  
+  - Split segments, add control points.  
+  - Select specific points or apply to entire curve.  
+  - Adjustable `Number of Cuts`.  
+- **Decimate Curve:**  
+  - Reduce control points while preserving shape.  
+  - Uses RDP algorithm with `Error Threshold`.  
 
-## 作者
+---
 
--   **安永ヨシキ**
--   X (旧Twitter): [@YasunagaYoshiki](https://twitter.com/YasunagaYoshiki)
+## 3. Edge Creation Tool  
+Quickly create connected edges by clicking in the 3D view, with snapping support.  
+
+3Dビュー上でマウスクリックするだけで、スナップを効かせながら連続した辺を作成できるツールです。  
+
+**Version:** 1.5  
+**Panel:** 3D View > UI Shelf > Sculpt Tools  
+
+---
+
+## 4. PolyMaker Tool  
+Supports creating and editing polygon meshes.  
+
+ポリゴンメッシュの作成と基本的な編集をサポートするツールです。  
+
+**Version:** 1.2  
+**Panel:** 3D View > UI Shelf > Sculpt Tools  
+
+---
+
+## 5. Language Switcher  
+Switch Blender UI language quickly between Japanese and English.  
+
+BlenderのUI言語を日本語と英語で素早く切り替えるためのツールです。  
+
+**Version:** 1.1.0  
+**Panel:** 3D View > UI Shelf > Sculpt Tools  
+
+---
+
+## 6. Voxel Remesh and Sculpt  
+Automates merging objects, remeshing with voxels, and starting sculpt mode.  
+
+複数のオブジェクトを統合し、ボクセルリメッシュをかけてスカルプトを開始するまでの一連の流れを自動化するツールです。  
+
+**Version:** 2.2.3  
+**Panel:** 3D View > UI Shelf > Sculpt Tools  
+
+---
+
+## Contribution / 貢献  
+Bug reports and feature requests are welcome, but responses may be delayed.  
+
+バグ報告や機能改善の提案は歓迎しますが、すぐに対応できない場合があります。  
+
+---
+
+## License / ライセンス  
+This project is released under the MIT License. See `LICENSE` for details.  
+
+このプロジェクトはMITライセンスの下で公開されています。詳細は`LICENSE`ファイルをご覧ください。  
+
+---
+
+## Author / 作者  
+- **Yoshiki Yasunaga**  
+- X (formerly Twitter): [@YasunagaYoshiki](https://twitter.com/YasunagaYoshiki)  
+
+- **安永ヨシキ**  
+- X (旧Twitter): [@YasunagaYoshiki](https://twitter.com/YasunagaYoshiki)  
