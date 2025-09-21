@@ -1,156 +1,145 @@
-# Blender Sculpt / Modeling Tools Collection  
+---
+
+# Blender Sculpt / Modeling Tools Collection
+
 # Blender スカルプト / モデリングツール集
 
 ---
 
-## Overview  
-This is a collection of custom Blender addons designed to accelerate sculpting and modeling workflows.  
+## Overview
 
-Blenderのスカルプトとモデリングのワークフローを高速化することを目的とした、自作アドオンのコレクションです。  
+This is a collection of custom Blender addons designed to accelerate sculpting and modeling workflows.
 
----
-
-## Environment  
-- Tested with Blender 4.4  
-
-- Blender 4.4で動作確認済み  
+Blenderのスカルプトとモデリングのワークフローを高速化することを目的とした、自作アドオンのコレクションです。
 
 ---
 
-## Installation  
-It is assumed that you will install each addon `.py` file individually.  
+## Environment
 
-1. Download the `.py` file of the addon you want to use from this repository.  
-2. Launch Blender and go to `Edit > Preferences > Add-ons`.  
-3. Press the `Install` button and select the downloaded `.py` file.  
-4. Enable the installed addon in the list.  
+* Tested with Blender 4.4
 
-必要なアドオンの`.py`ファイルのみを個別にインストールすることを想定しています。  
-
-1. このリポジトリから、使用したいアドオンの`.py`ファイルをダウンロードします。  
-2. Blenderを起動し、`編集 > プリファレンス > アドオン` を開きます。  
-3. `インストール`ボタンを押し、ダウンロードした`.py`ファイルを選択します。  
-4. インストールされたアドオンにチェックを入れて有効化します。  
+* Blender 4.4で動作確認済み
 
 ---
 
-## Included Addons  
-1. [Bezier Draw Tool with Effects](#1-bezier-draw-tool-with-effects)  
-2. [Curve Subdivide & Decimate](#2-curve-subdivide--decimate)  
-3. [Edge Creation Tool](#3-edge-creation-tool)  
-4. [PolyMaker Tool](#4-polymaker-tool)  
-5. [Language Switcher](#5-language-switcher)  
-6. [Voxel Remesh and Sculpt](#6-voxel-remesh-and-sculpt)  
+## Installation
 
-## 収録アドオン一覧  
-1. [Bezier Draw Tool with Effects](#1-bezier-draw-tool-with-effects)  
-2. [Curve Subdivide & Decimate](#2-curve-subdivide--decimate)  
-3. [Edge Creation Tool](#3-edge-creation-tool)  
-4. [PolyMaker Tool](#4-polymaker-tool)  
-5. [Language Switcher](#5-language-switcher)  
-6. [Voxel Remesh and Sculpt](#6-voxel-remesh-and-sculpt)  
+It is assumed that you will install each addon `.py` file individually.
 
----
+1. Download the `.py` file of the addon you want to use from this repository.
+2. Launch Blender and go to `Edit > Preferences > Add-ons`.
+3. Press the `Install` button and select the downloaded `.py` file.
+4. Enable the installed addon in the list.
 
-## 1. Bezier Draw Tool with Effects  
-Draw Bezier curves intuitively in the 3D view and apply various effects.  
+必要なアドオンの`.py`ファイルのみを個別にインストールすることを想定しています。
 
-3Dビュー上で直感的にベジェ曲線を描画し、多彩なエフェクトを適用できるツールです。  
-
-**Version:** 1.4.5  
-**Panel:** 3D View > UI Shelf > Sculpt Tools  
-
-### Features / 主な機能  
-- **Drawing:**  
-  - `Start Drawing`: Create a new Bezier curve and enter draw mode.  
-  - `Finish Drawing`: Exit draw mode and return to object mode.  
-- **Edit Mode Effects (apply to selected points):**  
-  - `Spiral Points`: Arrange control points in a spiral.  
-  - `Scale Variation`: Add variation to point radius.  
-  - `Rotate Variation`: Add tilt rotation to points.  
-  - `Smooth Points`: Smooth handles and adjust type/scale.  
-- **Object Mode Effects (apply to whole curve):**  
-  - `Scale Variation (Object Mode)`: Apply global thickness variation.  
-  - Includes twist and spiral transformation options.  
+1. このリポジトリから、使用したいアドオンの`.py`ファイルをダウンロードします。
+2. Blenderを起動し、`編集 > プリファレンス > アドオン` を開きます。
+3. `インストール`ボタンを押し、ダウンロードした`.py`ファイルを選択します。
+4. インストールされたアドオンにチェックを入れて有効化します。
 
 ---
 
-## 2. Curve Subdivide & Decimate  
-Tools to increase (subdivide) or reduce (decimate) curve control points. Works in Edit Mode.  
+## Included Addons
 
-カーブのポイントを増やしたり（細分化）、減らしたり（間引き）するためのツールです。編集モードで動作します。  
+1. [Bezier Draw Tool with Effects](#1-bezier-draw-tool-with-effects)
+2. [Curve Subdivide & Decimate](#2-curve-subdivide--decimate)
+3. [Edge Creation Tool](#3-edge-creation-tool)
+4. [PolyMaker Tool](#4-polymaker-tool)
+5. [Language Switcher](#5-language-switcher)
+6. [Voxel Remesh and Sculpt](#6-voxel-remesh-and-sculpt)
+7. [Metaball Brush Tool](#7-metaball-brush-tool)
 
-**Version:** 1.0.4  
-**Panel:** 3D View > UI Shelf > Sculpt Tools  
+## 収録アドオン一覧
 
-### Features / 主な機能  
-- **Subdivide Curve:**  
-  - Split segments, add control points.  
-  - Select specific points or apply to entire curve.  
-  - Adjustable `Number of Cuts`.  
-- **Decimate Curve:**  
-  - Reduce control points while preserving shape.  
-  - Uses RDP algorithm with `Error Threshold`.  
-
----
-
-## 3. Edge Creation Tool  
-Quickly create connected edges by clicking in the 3D view, with snapping support.  
-
-3Dビュー上でマウスクリックするだけで、スナップを効かせながら連続した辺を作成できるツールです。  
-
-**Version:** 1.5  
-**Panel:** 3D View > UI Shelf > Sculpt Tools  
+1. [Bezier Draw Tool with Effects](#1-bezier-draw-tool-with-effects)
+2. [Curve Subdivide & Decimate](#2-curve-subdivide--decimate)
+3. [Edge Creation Tool](#3-edge-creation-tool)
+4. [PolyMaker Tool](#4-polymaker-tool)
+5. [Language Switcher](#5-language-switcher)
+6. [Voxel Remesh and Sculpt](#6-voxel-remesh-and-sculpt)
+7. [Metaball Brush Tool](#7-metaball-brush-tool)
 
 ---
 
-## 4. PolyMaker Tool  
-Supports creating and editing polygon meshes.  
+## 1. Bezier Draw Tool with Effects
 
-ポリゴンメッシュの作成と基本的な編集をサポートするツールです。  
-
-**Version:** 1.2  
-**Panel:** 3D View > UI Shelf > Sculpt Tools  
+*(既存内容省略)*
 
 ---
 
-## 5. Language Switcher  
-Switch Blender UI language quickly between Japanese and English.  
+## 2. Curve Subdivide & Decimate
 
-BlenderのUI言語を日本語と英語で素早く切り替えるためのツールです。  
-
-**Version:** 1.1.0  
-**Panel:** 3D View > UI Shelf > Sculpt Tools  
+*(既存内容省略)*
 
 ---
 
-## 6. Voxel Remesh and Sculpt  
-Automates merging objects, remeshing with voxels, and starting sculpt mode.  
+## 3. Edge Creation Tool
 
-複数のオブジェクトを統合し、ボクセルリメッシュをかけてスカルプトを開始するまでの一連の流れを自動化するツールです。  
-
-**Version:** 2.2.3  
-**Panel:** 3D View > UI Shelf > Sculpt Tools  
+*(既存内容省略)*
 
 ---
 
-## Contribution / 貢献  
-Bug reports and feature requests are welcome, but responses may be delayed.  
+## 4. PolyMaker Tool
 
-バグ報告や機能改善の提案は歓迎しますが、すぐに対応できない場合があります。  
-
----
-
-## License / ライセンス  
-This project is released under the MIT License. See `LICENSE` for details.  
-
-このプロジェクトはMITライセンスの下で公開されています。詳細は`LICENSE`ファイルをご覧ください。  
+*(既存内容省略)*
 
 ---
 
-## Author / 作者  
-- **Yoshiki Yasunaga**  
-- X (formerly Twitter): [@YasunagaYoshiki](https://twitter.com/YasunagaYoshiki)  
+## 5. Language Switcher
 
-- **安永ヨシキ**  
-- X (旧Twitter): [@YasunagaYoshiki](https://twitter.com/YasunagaYoshiki)  
+*(既存内容省略)*
+
+---
+
+## 6. Voxel Remesh and Sculpt
+
+*(既存内容省略)*
+
+---
+
+## 7. Metaball Brush Tool
+
+Draw directly with metaballs using pressure-sensitive strokes. Supports undo per stroke/element, mirror placement, snap/cursor/view depth modes, and GPU preview.
+
+メタボールを筆のように描画できるアドオンです。筆圧に対応し、ストローク単位／要素単位でのアンドゥ、X/Y/Z 軸でのミラー配置、カーソル／スナップ／ビュー奥行きでの配置モード、GPUによるプレビュー表示をサポートしています。
+
+**Version:** 8.5
+**Panel:** 3D View > UI Shelf > Sculpt Tools
+
+### Features / 主な機能
+
+* **Drawing Modes / 描画モード**: View Depth, 3D Cursor Depth, Snap (Raycast)
+* **Undo Modes / アンドゥ**: Per Stroke, Per Element
+* **Pressure Curve / 筆圧カーブ**: Smooth or sharp control of radius
+* **Mirror Placement / ミラー配置**: X / Y / Z 軸で対称に配置
+* **GPU Preview / プレビュー**: 筆圧に応じたブラシサイズを表示
+
+---
+
+## Contribution / 貢献
+
+Bug reports and feature requests are welcome, but responses may be delayed.
+
+バグ報告や機能改善の提案は歓迎しますが、すぐに対応できない場合があります。
+
+---
+
+## License / ライセンス
+
+This project is released under the MIT License. See `LICENSE` for details.
+
+このプロジェクトはMITライセンスの下で公開されています。詳細は`LICENSE`ファイルをご覧ください。
+
+---
+
+## Author / 作者
+
+* **Yoshiki Yasunaga**
+
+* X (formerly Twitter): [@YasunagaYoshiki](https://twitter.com/YasunagaYoshiki)
+
+* **安永ヨシキ**
+
+* X (旧Twitter): [@YasunagaYoshiki](https://twitter.com/YasunagaYoshiki)
+
