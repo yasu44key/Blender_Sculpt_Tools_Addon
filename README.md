@@ -1,145 +1,55 @@
----
+# Sculpt Tools Suite
 
-# Blender Sculpt / Modeling Tools Collection
+スカルプトとモデリングの作業を速くする自作ツール集（Blender Extension）。
+必要なモジュールだけをプリファレンスで ON にして使う。
 
-# Blender スカルプト / モデリングツール集
+- 対応: Blender 5.1 / 5.2
+- 作者: 安永ヨシキ（X: @YasunagaYoshiki） & Claude Code
+- ライセンス: MIT
 
----
+## インストール
 
-## Overview
+1. [Releases](https://github.com/yasu44key/Blender_Sculpt_Tools_Addon/releases) から `sculpt_tools_suite-<版>.zip` をダウンロード
+   （「Code > Download ZIP」はソース一式なのでそのままは入らない。自分で作るなら `blender --command extension build`）
+2. Blender の 編集 > プリファレンス > アドオン > 右上の ▼ > 「ディスクからインストール」で zip を選ぶ
+3. 「Sculpt Tools Suite」を展開し、使うモジュールにチェック
 
-This is a collection of custom Blender addons designed to accelerate sculpting and modeling workflows.
+2.0.0 で、以前このリポジトリにあった単体アドオン（BeziierDraw・VoxelV2・MetaballBrushTool・Switch_Jp_En ほか）を
+すべてこの1本にまとめた。まとめ方は [docs/CONSOLIDATION_REPORT.md](docs/CONSOLIDATION_REPORT.md)。
+旧版の単体ファイルは [v1.5.0 のリリース](https://github.com/yasu44key/Blender_Sculpt_Tools_Addon/releases/tag/v1.5.0) と履歴に残っている。
 
-Blenderのスカルプトとモデリングのワークフローを高速化することを目的とした、自作アドオンのコレクションです。
+## モジュール
 
----
+- **Bezier Draw**（カーブ / 生成 タブ）— ベジェのフリーハンド描画、スパイラル・半径・ツイスト等の効果、
+  細分化・間引き、メタボール変換、スパイラル／リサージュ／ストランド／クロスネット生成
+- **Language Switch**（ユーティリティ タブ）— UI 言語を日本語⇔英語に切り替え、翻訳項目のオン/オフ
+- **Edge Creation**（モデル タブ）— クリックで表面に吸着する頂点と辺を置く（リトポ用・既存メッシュへの追加可）
+- **Voxel Remesh**（スカルプト タブ）— 選択を1つに統合してボクセルリメッシュ。元は残し、元オブジェクトごとに面セット
+- **Face Set Tools**（スカルプト タブ）— クリックした面セットをマスクに（置き換え/足す/引く・反転）。既存マスクと非表示状態を壊さない
+- **Mesh Tools**（モデル タブ）— 1クリックのソリッド化（値の直接編集・適用）と、三角⇔四角変換の標準ボタン
+- **Metaball Brush**（スカルプト タブ）— ドラッグでメタボールを置く。表面／3D カーソル／平面、筆圧、3D カーソル中心のミラー
+- **Object Brush**（スカルプト タブ）— ドラッグで物のコピーを表面に置く。コレクションからランダム、法線・ストロークに沿わせる、XY グリッド、ブラシ内 Undo
+- **Sujibori**（モデル タブ）— カーブに沿って筋彫り。ライブ（ジオメトリノード・線に即追従）とブーリアン（更新で作り直し）
+- **Align Tools**（モデル タブ）— 面・辺の向きを軸に合わせる／原点を底へ／面や地面に落とす（凸凹でも接触）／3D カーソルに合わせる（スケール保持）
+- **Retopo Assistant**（モデル タブ）— 生きた Decimate ＋稜線の保護（スカルプトマスクから／角度から）。頂点数の見込み、適用・削除
+- **Shapes**（生成 タブ／追加 > メッシュ）— 紡錘・卵／カプセル（プリセット）・歯車（穴あり可）・星・正多面体5種＋サッカーボール（切頂二十面体）。F9 で調整
+- **Mesh Generators**（生成 タブ／追加 > メッシュ）— 格子（立方体／四面体・八面体の空間充填）・六角グリッド・ランダム格子・葉脈（スペースコロニゼーション、輪郭はプリセットか選んだカーブ、Skin で根元を太く）。シードで再現
+- **Wave Surface**（生成 タブ／追加 > メッシュ）— 二次曲面＋同心円の波3つを生きたジオメトリノードで。後から変更でき、アニメーションも。平面以外にも法線方向にかけられる
+- **Smooth Normals**（モデル タブ）— 頂点グループで塗った所だけ陰影（法線）をなめらかに。形は変えない生きたモディファイア
+- **Wear**（スカルプト タブ）— 鋭い辺の欠けと面の浸食（下向きの面ほど）を一発で。大きさは面ごとの比率、F9 で調整、シードで再現
+- **Panel Raise**（モデル タブ）— 選択した面に溝つきの面板を一押しで（余白・溝の幅と深さ・面板の高さ・ベベル、F9 で調整）
+- **Annotation Convert**（カーブ タブ）— アノテーションの線をベジェカーブかメッシュの辺に（アクティブ／表示中のレイヤー、間引き、変換後に隠す）
+- **NURBS Grid**（カーブ タブ）— クリックで行ごとに点を打って NURBS サーフェスに（スナップ・ドラッグ・点ごとのウェイト・視点側を向く）。結合・一括反転・ループ U/V
+- **Point Smooth**（モデル タブ）— 選んだ点を、線は直線に等間隔／ループはなめらかに（大きさを保つ）／面は緩和。点を膨らませる（中央ほど大きく）・別のメッシュの表面へラップ（オフセット・回数）。メッシュ・カーブ・NURBS サーフェス、編集モードの全オブジェクト
+- **Quick Buttons**（ユーティリティ タブ）— 一押しで位置・回転・拡大を軸ごとにリセット、決まった角度で回転、平らに、ミラー、刻み移動、ピボット・座標系・3D カーソル
+- **Strip Draw**（スカルプト タブ）— 面の上に帯を描く：アーマー板・ストラップのリボンか、手で足したようなクレイの帯。筆圧で幅、帯ごとに後から幅・浮き・厚みを変更
+- **Thickness Guard**（スカルプト タブ）— 3D プリント用の壁の厚み：計測（属性）・薄い所を選ぶ／頂点グループ・押し出して直す・厚みからスカルプトマスク・なぞった所だけ直すブラシ
+- **Tessellation**（モデル タブ）— 正確な寸法のタイル（正方形・レンガ・三角・六角・八角＋正方形・ボロノイ）を面をまたいで連続に敷く／ジオメトリノードの生きたセル模様（後から密度・ゆらぎ・すき間・厚み・格子を変更）／スキン格子
 
-## Environment
+移植中の残りのツールは [docs/MIGRATION.md](docs/MIGRATION.md)、作りの決まりは [docs/CONVENTIONS.md](docs/CONVENTIONS.md)。
 
-* Tested with Blender 4.4
+## 開発
 
-* Blender 4.4で動作確認済み
-
----
-
-## Installation
-
-It is assumed that you will install each addon `.py` file individually.
-
-1. Download the `.py` file of the addon you want to use from this repository.
-2. Launch Blender and go to `Edit > Preferences > Add-ons`.
-3. Press the `Install` button and select the downloaded `.py` file.
-4. Enable the installed addon in the list.
-
-必要なアドオンの`.py`ファイルのみを個別にインストールすることを想定しています。
-
-1. このリポジトリから、使用したいアドオンの`.py`ファイルをダウンロードします。
-2. Blenderを起動し、`編集 > プリファレンス > アドオン` を開きます。
-3. `インストール`ボタンを押し、ダウンロードした`.py`ファイルを選択します。
-4. インストールされたアドオンにチェックを入れて有効化します。
-
----
-
-## Included Addons
-
-1. [Bezier Draw Tool with Effects](#1-bezier-draw-tool-with-effects)
-2. [Curve Subdivide & Decimate](#2-curve-subdivide--decimate)
-3. [Edge Creation Tool](#3-edge-creation-tool)
-4. [PolyMaker Tool](#4-polymaker-tool)
-5. [Language Switcher](#5-language-switcher)
-6. [Voxel Remesh and Sculpt](#6-voxel-remesh-and-sculpt)
-7. [Metaball Brush Tool](#7-metaball-brush-tool)
-
-## 収録アドオン一覧
-
-1. [Bezier Draw Tool with Effects](#1-bezier-draw-tool-with-effects)
-2. [Curve Subdivide & Decimate](#2-curve-subdivide--decimate)
-3. [Edge Creation Tool](#3-edge-creation-tool)
-4. [PolyMaker Tool](#4-polymaker-tool)
-5. [Language Switcher](#5-language-switcher)
-6. [Voxel Remesh and Sculpt](#6-voxel-remesh-and-sculpt)
-7. [Metaball Brush Tool](#7-metaball-brush-tool)
-
----
-
-## 1. Bezier Draw Tool with Effects
-
-*(既存内容省略)*
-
----
-
-## 2. Curve Subdivide & Decimate
-
-*(既存内容省略)*
-
----
-
-## 3. Edge Creation Tool
-
-*(既存内容省略)*
-
----
-
-## 4. PolyMaker Tool
-
-*(既存内容省略)*
-
----
-
-## 5. Language Switcher
-
-*(既存内容省略)*
-
----
-
-## 6. Voxel Remesh and Sculpt
-
-*(既存内容省略)*
-
----
-
-## 7. Metaball Brush Tool
-
-Draw directly with metaballs using pressure-sensitive strokes. Supports undo per stroke/element, mirror placement, snap/cursor/view depth modes, and GPU preview.
-
-メタボールを筆のように描画できるアドオンです。筆圧に対応し、ストローク単位／要素単位でのアンドゥ、X/Y/Z 軸でのミラー配置、カーソル／スナップ／ビュー奥行きでの配置モード、GPUによるプレビュー表示をサポートしています。
-
-**Version:** 8.5
-**Panel:** 3D View > UI Shelf > Sculpt Tools
-
-### Features / 主な機能
-
-* **Drawing Modes / 描画モード**: View Depth, 3D Cursor Depth, Snap (Raycast)
-* **Undo Modes / アンドゥ**: Per Stroke, Per Element
-* **Pressure Curve / 筆圧カーブ**: Smooth or sharp control of radius
-* **Mirror Placement / ミラー配置**: X / Y / Z 軸で対称に配置
-* **GPU Preview / プレビュー**: 筆圧に応じたブラシサイズを表示
-
----
-
-## Contribution / 貢献
-
-Bug reports and feature requests are welcome, but responses may be delayed.
-
-バグ報告や機能改善の提案は歓迎しますが、すぐに対応できない場合があります。
-
----
-
-## License / ライセンス
-
-This project is released under the MIT License. See `LICENSE` for details.
-
-このプロジェクトはMITライセンスの下で公開されています。詳細は`LICENSE`ファイルをご覧ください。
-
----
-
-## Author / 作者
-
-* **Yoshiki Yasunaga**
-
-* X (formerly Twitter): [@YasunagaYoshiki](https://twitter.com/YasunagaYoshiki)
-
-* **安永ヨシキ**
-
-* X (旧Twitter): [@YasunagaYoshiki](https://twitter.com/YasunagaYoshiki)
-
+```bash
+bash tests/run_tests.sh
+```

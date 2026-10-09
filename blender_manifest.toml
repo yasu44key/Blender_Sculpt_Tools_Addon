@@ -1,0 +1,25 @@
+schema_version = "1.0.0"
+
+id = "sculpt_tools_suite"
+version = "2.0.0"
+name = "Sculpt Tools Suite"
+tagline = "Sculpt and modeling tools, enable only the modules you need"
+maintainer = "Yoshiki Yasunaga & Claude Code"
+type = "add-on"
+website = "https://github.com/yasu44key/Blender_Sculpt_Tools_Addon"
+
+tags = ["Sculpt", "Modeling", "Add Curve"]
+
+blender_version_min = "5.1.0"
+
+license = ["SPDX:MIT"]
+copyright = ["2025-2026 Yoshiki Yasunaga"]
+
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  "/.git/",
+  "/tests/",
+  "/docs/",
+  "*.zip",
+]
