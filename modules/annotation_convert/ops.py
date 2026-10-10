@@ -18,6 +18,8 @@ import math
 import bpy
 from mathutils import Vector
 
+from ...core.annotation import stroke_positions as _stroke_positions
+
 
 def _point_to_line_dist(p, a, b):
     ab = b - a
@@ -86,31 +88,6 @@ def _build_bezier_spline(curve_data, positions, corner_threshold_rad):
             bp.handle_left_type = 'FREE'
             bp.handle_right_type = 'FREE'
     return spline
-
-
-def _frame_for(layer, current_frame):
-    """The frame shown at the current frame: the newest frame at or below it,
-    else the first one (layer.active_frame can be None right after opening)."""
-    if not layer.frames:
-        return None
-    best = None
-    for frame in layer.frames:
-        if frame.frame_number <= current_frame and (best is None or frame.frame_number > best.frame_number):
-            best = frame
-    return best if best is not None else layer.frames[0]
-
-
-def _stroke_positions(layer, current_frame):
-    """World-space point lists of the layer's strokes, chains with < 2 points skipped."""
-    frame = _frame_for(layer, current_frame)
-    if frame is None:
-        return []
-    strokes = []
-    for stroke in frame.strokes:
-        points = [p.co.copy() for p in stroke.points]
-        if len(points) >= 2:
-            strokes.append(points)
-    return strokes
 
 
 def _target_layers(ann, layers_mode):

@@ -32,6 +32,7 @@
 - **Sujibori**（モデル タブ）— カーブに沿って筋彫り。ライブ（ジオメトリノード・線に即追従）とブーリアン（更新で作り直し）
 - **Align Tools**（モデル タブ）— 面・辺の向きを軸に合わせる／原点を底へ／面や地面に落とす（凸凹でも接触）／3D カーソルに合わせる（スケール保持）
 - **Retopo Assistant**（モデル タブ）— 生きた Decimate ＋稜線の保護（スカルプトマスクから／角度から）。頂点数の見込み、適用・削除
+- **Quad Remesh**（モデル タブ）— スキャン・スカルプトをきれいな四角形メッシュに（QuadWild）。目標の面数・対称・シャープな辺・元形状へのフィット。**ガイド線**（稜線・谷線の自動検出をアノテーションに描き出し、手で描き足し・消して、流れを沿わせる）。**密度マップ**（マスク・カラー属性で塗った所を細かく。要 STS QuadWild Engine）。1,000万三角形のスキャンも1分弱。別プロセスで実行（進行表示・Esc で中止）。**エンジンは別に入れる**（STS QuadWild Engine か QRemeshify。下の「ライセンス」を参照）
 - **Shapes**（生成 タブ／追加 > メッシュ）— 紡錘・卵／カプセル（プリセット）・歯車（穴あり可）・星・正多面体5種＋サッカーボール（切頂二十面体）。F9 で調整
 - **Mesh Generators**（生成 タブ／追加 > メッシュ）— 格子（立方体／四面体・八面体の空間充填）・六角グリッド・ランダム格子・葉脈（スペースコロニゼーション、輪郭はプリセットか選んだカーブ、Skin で根元を太く）。シードで再現
 - **Wave Surface**（生成 タブ／追加 > メッシュ）— 二次曲面＋同心円の波3つを生きたジオメトリノードで。後から変更でき、アニメーションも。平面以外にも法線方向にかけられる
@@ -47,6 +48,15 @@
 - **Tessellation**（モデル タブ）— 正確な寸法のタイル（正方形・レンガ・三角・六角・八角＋正方形・ボロノイ）を面をまたいで連続に敷く／ジオメトリノードの生きたセル模様（後から密度・ゆらぎ・すき間・厚み・格子を変更）／スキン格子
 
 移植中の残りのツールは [docs/MIGRATION.md](docs/MIGRATION.md)、作りの決まりは [docs/CONVENTIONS.md](docs/CONVENTIONS.md)。
+
+## ライセンス
+
+- Sculpt Tools Suite（このリポジトリ）は **MIT** です（`LICENSE`）
+- **Quad Remesh** だけは外部のエンジン（QuadWild、**GPL-3.0**）を使います。エンジンはこのアドオンに**含まれていません**。次のどちらかを別に入れてください
+  - **[STS QuadWild Engine](https://github.com/yasu44key/quadwild-bimdf/releases/tag/sts-engine-v1.0.0)**（密度マップ対応・別配布の GPL Extension・Windows x64。ソースは [sts/density ブランチ](https://github.com/yasu44key/quadwild-bimdf/tree/sts/density)、改造点は同梱の `SOURCE.md`）
+  - [QRemeshify](https://github.com/ksami/QRemeshify)（無料・GPL。密度マップ以外は使えます）
+- エンジンは Blender とは別のプロセスで動かします。エンジンを入れなければ Quad Remesh のパネルは入手先を示すだけで、ほかのモジュールには影響しません。
+  使わない場合はプリファレンスで Quad Remesh のチェックを外せます
 
 ## 開発
 

@@ -46,6 +46,8 @@
 - 対象が無いときは `report({'WARNING'}, ...)` して `CANCELLED`（黙って何もしない、をしない）
 - オペレータは `bl_options = {'REGISTER', 'UNDO'}`。パラメータは F9（最後の操作を調整）で再調整できる形に。
   シーンに設定値を置いてボタンに渡す方式は使わない
+  - 例外: 数十秒かかる処理（quad_remesh）は modal（進行表示・Esc で中止）にして重い仕事は別プロセスへ。F9 は使えないので設定は
+    `invoke_props_dialog`（前回値を覚える）。スクリプト・テスト用に隠しプロパティ `blocking`（SKIP_SAVE）で待つ
 - 角度は `subtype='ANGLE'`、長さは `unit='LENGTH'`（ラジアン生値を見せない）
 - **ユーザーのデータを名前で消したり上書きしたりしない**（旧 spiral は既存 "Spiral_Curve" を削除していた）
 - 何度押しても複製が増えない（旧 Bezier の Mirror は Finish のたびに複製）。非破壊にできるものはモディファイアで

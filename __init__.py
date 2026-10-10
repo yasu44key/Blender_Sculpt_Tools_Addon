@@ -42,6 +42,7 @@ MODULES = (
     "mesh_generators",
     "thickness_guard",
     "retopo_assistant",
+    "quad_remesh",
 )
 
 _loaded = {}     # name -> imported module
