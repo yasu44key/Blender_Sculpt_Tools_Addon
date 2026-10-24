@@ -21,15 +21,19 @@ from ...core import nodes
 
 MOD_NAME = "STS Strip"
 GROUP_NAME = "STS Strip"
-VERSION = 2
+VERSION = 4        # 3: lengths in plain Blender units; 4: Voxel Size really used (was voxel Amount)
+VOXELS_ACROSS = 200   # the clay voxel is never finer than Width / this (a fine voxel on a long strip
+                      # fills memory and freezes Blender)
 
+# Lengths have no unit subtype: they show as plain Blender units, like the scene's own grid.
 INPUTS = (
     ("Target", 'NodeSocketObject', None, None, None, 'NONE', "Surface the band lies on"),
-    ("Width", 'NodeSocketFloat', 0.05, 0.0, None, 'DISTANCE', "Band width (times the pen pressure)"),
-    ("Offset", 'NodeSocketFloat', 0.002, None, None, 'DISTANCE', "Lift above the surface"),
-    ("Band Thickness", 'NodeSocketFloat', 0.01, 0.0, None, 'DISTANCE', "Thickness of the band (0 = a flat ribbon)"),
+    ("Width", 'NodeSocketFloat', 5.0, 0.0, None, 'NONE', "Band width (times the pen pressure)"),
+    ("Offset", 'NodeSocketFloat', 0.1, None, None, 'NONE', "Lift above the surface"),
+    ("Band Thickness", 'NodeSocketFloat', 1.0, 0.0, None, 'NONE', "Thickness of the band (0 = a flat ribbon)"),
     ("Clay", 'NodeSocketBool', False, None, None, 'NONE', "Remesh the band into a soft clay strip"),
-    ("Voxel Size", 'NodeSocketFloat', 0.005, 0.0001, None, 'DISTANCE', "Detail of the clay remesh"),
+    ("Voxel Size", 'NodeSocketFloat', 0.1, 0.0001, None, 'NONE',
+     f"Detail of the clay remesh (never finer than Width / {VOXELS_ACROSS})"),
 )
 
 
@@ -39,6 +43,14 @@ def _set_free_normal_mode(node):
         node.mode = 'FREE'
     else:
         node.inputs["Mode"].default_value = 'Free'
+
+
+def _set_voxel_size_mode(node):
+    """Mesh to Volume: by voxel Size (the default is a voxel Amount, which ignores Voxel Size)."""
+    if hasattr(node, "resolution_mode"):
+        node.resolution_mode = 'VOXEL_SIZE'
+    else:
+        node.inputs["Resolution Mode"].default_value = 'Size'
 
 
 def build_node_group():
@@ -113,6 +125,12 @@ def build_node_group():
     thick_or_flat.input_type = 'GEOMETRY'
 
     to_vol = N.new('GeometryNodeMeshToVolume')
+    _set_voxel_size_mode(to_vol)
+    finest = N.new('ShaderNodeMath')
+    finest.operation = 'DIVIDE'
+    finest.inputs[1].default_value = VOXELS_ACROSS
+    voxel = N.new('ShaderNodeMath')
+    voxel.operation = 'MAXIMUM'
     to_mesh = N.new('GeometryNodeVolumeToMesh')
     clay = N.new('GeometryNodeSwitch')
     clay.input_type = 'GEOMETRY'
@@ -157,7 +175,10 @@ def build_node_group():
     link(orient.outputs[0], thick_or_flat.inputs["True"])
 
     link(thick_or_flat.outputs[0], to_vol.inputs["Mesh"])
-    link(gin.outputs["Voxel Size"], to_vol.inputs["Voxel Size"])
+    link(gin.outputs["Width"], finest.inputs[0])
+    link(gin.outputs["Voxel Size"], voxel.inputs[0])
+    link(finest.outputs[0], voxel.inputs[1])
+    link(voxel.outputs[0], to_vol.inputs["Voxel Size"])
     link(to_vol.outputs[0], to_mesh.inputs["Volume"])
     link(gin.outputs["Clay"], clay.inputs["Switch"])
     link(thick_or_flat.outputs[0], clay.inputs["False"])
@@ -166,7 +187,7 @@ def build_node_group():
 
     columns = ((gin,), (info, normal, tangent, radius), (surf_n, side, width, profile), (side_n, lift_n),
                (set_n, lift), (sweep, facing), (lifted, away), (orient,), (extrude, flip, flat), (slab,), (weld,), (thick_or_flat,),
-               (to_vol,), (to_mesh,), (clay,), (gout,))
+               (finest, voxel), (to_vol,), (to_mesh,), (clay,), (gout,))
     for i, col in enumerate(columns):
         for j, node in enumerate(col):
             node.location = (i * 200, -j * 220)
@@ -174,10 +195,31 @@ def build_node_group():
 
 
 def node_group():
-    for ng in bpy.data.node_groups:
-        if ng.bl_idname == 'GeometryNodeTree' and ng.get("sts_strip_version") == VERSION:
-            return ng
-    return build_node_group()
+    """The current group; strips on an older one are moved onto it (their values stay:
+    the inputs keep their order, so their identifiers match)."""
+    groups = [ng for ng in bpy.data.node_groups if ng.bl_idname == 'GeometryNodeTree' and "sts_strip_version" in ng]
+    current = next((ng for ng in groups if ng["sts_strip_version"] == VERSION), None)
+    old = [ng for ng in groups if ng["sts_strip_version"] != VERSION]
+    if current is None:
+        current = build_node_group()
+    for ng in old:
+        for obj in bpy.data.objects:
+            for mod in obj.modifiers:
+                if mod.type == 'NODES' and mod.node_group is ng:
+                    values = {name: get_input(mod, name) for name, *_ in INPUTS}
+                    mod.node_group = current
+                    for name, value in values.items():
+                        set_input(mod, name, value)
+        if ng.users == 0:
+            bpy.data.node_groups.remove(ng)
+    return current
+
+
+def upgrade_old():
+    """Move strips off older node groups (on load / enable); nothing is built when there are none."""
+    if any(ng.bl_idname == 'GeometryNodeTree' and ng.get("sts_strip_version", VERSION) != VERSION
+           for ng in bpy.data.node_groups):
+        node_group()
 
 
 def get(obj):

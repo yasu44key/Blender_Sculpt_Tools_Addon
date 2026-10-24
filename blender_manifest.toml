@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "sculpt_tools_suite"
-version = "2.4.0"
+version = "2.4.1"
 name = "Sculpt Tools Suite"
 tagline = "Sculpt and modeling tools, enable only the modules you need"
 maintainer = "Yoshiki Yasunaga & Claude Code"

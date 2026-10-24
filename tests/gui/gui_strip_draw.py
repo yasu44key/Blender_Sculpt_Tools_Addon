@@ -37,6 +37,8 @@ def ev(t, v, x, y):
 def s_setup():
     for o in list(bpy.data.objects):
         bpy.data.objects.remove(o)
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(8.0, 0.0, 0.0))
+    state["decoy"] = bpy.context.object             # a remembered surface the stroke is NOT drawn on
     bpy.ops.mesh.primitive_uv_sphere_add(radius=1.0, segments=48, ring_count=24)
     state["sphere"] = bpy.context.object
     win, area, region = war()
@@ -46,8 +48,9 @@ def s_setup():
     rv3d.view_location = (0, 0, 0)
     rv3d.view_distance = 4.0
     s = bpy.context.scene.sts_strip_draw
-    s.target = None
+    s.target = state["decoy"]
     s.width, s.offset, s.thickness, s.style = 0.1, 0.0, 0.0, 'RIBBON'
+    s.spacing = 0.25
     with bpy.context.temp_override(window=win, area=area, region=region):
         r = bpy.ops.curve.sts_strip_start()
     check("start: finished, Edit Mode, Draw tool", r == {'FINISHED'} and bpy.context.mode == 'EDIT_CURVE', str(r))
@@ -64,6 +67,16 @@ def s_draw():
     ev('LEFTMOUSE', 'RELEASE', x, y)
 
 
+def s_after_stroke():
+    o = bpy.context.object
+    mod = o.modifiers.get("STS Strip")
+    check("after the stroke: still drawing (Edit Mode)", bpy.context.mode == 'EDIT_CURVE')
+    t = mod.node_group and next(i for i in mod.node_group.interface.items_tree if getattr(i, "name", "") == "Target")
+    target = getattr(mod.properties.inputs, t.identifier).value if hasattr(mod, "properties") else mod[t.identifier]
+    check("after the stroke: Target follows the mesh drawn on (not the remembered one)",
+          target is state["sphere"], str(target))
+
+
 def s_finish():
     win, area, region = war()
     with bpy.context.temp_override(window=win, area=area, region=region):
@@ -78,6 +91,10 @@ def s_check():
     if not strips:
         return
     o = strips[0]
+    sp = o.data.splines[0]
+    gaps = [(sp.points[i + 1].co.xyz - sp.points[i].co.xyz).length for i in range(len(sp.points) - 1)]
+    check("the stroke was evened to Point Spacing 0.25 (before Finish)",
+          4 <= len(gaps) <= 8 and max(gaps) - min(gaps) < 0.01, f"{len(sp.points)} points, gaps {gaps}")
     dg = bpy.context.evaluated_depsgraph_get()
     ev_ = o.evaluated_get(dg)
     me = ev_.to_mesh()
@@ -87,7 +104,7 @@ def s_check():
           f"{min(rr) if rr else None}..{max(rr) if rr else None}")
 
 
-STEPS = [s_setup, s_draw, s_finish, s_check]
+STEPS = [s_setup, s_draw, s_after_stroke, s_finish, s_check]
 
 
 def tick():

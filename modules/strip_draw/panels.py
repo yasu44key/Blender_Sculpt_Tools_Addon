@@ -23,6 +23,7 @@ class VIEW3D_PT_sts_strip_draw(bpy.types.Panel):
             row = col.row()
             row.scale_y = 1.4
             row.operator("curve.sts_strip_finish", icon='CHECKMARK')
+            self._draw_points(layout, s, obj)
             self._draw_strip(layout, strip.get(obj))
             return
         if context.mode != 'OBJECT':
@@ -40,6 +41,7 @@ class VIEW3D_PT_sts_strip_draw(bpy.types.Panel):
         if s.style == 'CLAY':
             col.prop(s, "voxel_size")
         col.prop(s, "use_pressure")
+        col.prop(s, "spacing")
         row = layout.row()
         row.scale_y = 1.4
         row.operator("curve.sts_strip_start", icon='GREASEPENCIL')
@@ -47,8 +49,25 @@ class VIEW3D_PT_sts_strip_draw(bpy.types.Panel):
 
         mod = strip.get(obj)
         if mod is not None:
+            self._draw_points(layout, s, obj)
             self._draw_strip(layout, mod)
             layout.operator("object.sts_strip_to_mesh", icon='MESH_DATA')
+
+    @staticmethod
+    def _draw_points(layout, s, obj):
+        box = layout.box()
+        # in Edit Mode the curve data is only written back on leaving it, so no count there
+        n = "" if obj.mode == 'EDIT' else f": {sum(len(sp.points) for sp in obj.data.splines)}"
+        box.label(text=bpy.app.translations.pgettext_iface("Points") + n, icon='CURVE_PATH')
+        col = box.column(align=True)
+        col.use_property_split = True
+        col.use_property_decorate = False
+        if obj.mode == 'EDIT':
+            col.prop(s, "spacing")      # in Object Mode it sits with the settings above
+        col.operator("curve.sts_strip_resample", icon='ALIGN_JUSTIFY')
+        row = col.row(align=True)
+        row.operator("curve.sts_strip_decimate", icon='REMOVE')
+        row.operator("curve.sts_strip_subdivide", icon='ADD')
 
     @staticmethod
     def _draw_strip(layout, mod):

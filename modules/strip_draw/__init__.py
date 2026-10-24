@@ -9,7 +9,7 @@ Mesh_Clay_Strip.sculpt.py, mesh_clay_strip_v024.py
 
 import bpy
 
-from . import ops, panels
+from . import live, ops, panels
 
 META = {
     "label": "Strip Draw",
@@ -35,6 +35,13 @@ JA = {
     "Select strips": "帯を選んでください",
     "Nothing was drawn; the empty strip was removed": "何も描かれなかったので空の帯を削除しました",
     "Object Mode only": "オブジェクトモード専用",
+    "Points": "ポイント",
+    "Point Spacing": "点の間隔",
+    "Even Spacing": "間隔で整える",
+    "Decimate": "間引き",
+    "Subdivide": "細分化",
+    "Keep Every": "残す間隔",
+    "Drawn on {}: Target set to it": "{} に描かれていたのでターゲットをそれにしました",
 }
 
 classes = ops.classes + panels.classes
@@ -44,9 +51,11 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.sts_strip_draw = bpy.props.PointerProperty(type=ops.StripDrawSettings)
+    live.register()
 
 
 def unregister():
+    live.unregister()
     del bpy.types.Scene.sts_strip_draw
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
