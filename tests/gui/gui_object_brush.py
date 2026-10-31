@@ -124,6 +124,33 @@ def s_after_grid():
 
 def s_after_sidebar():
     check("click on the sidebar paints nothing", len(placed()) == state["n3"])
+    s = bpy.context.scene.sts_object_brush
+    s.brush_mode = 'STROKE'
+    s.connect_centers = True
+    s.line_thickness = 0.05
+    drag((-4.5, -1.5, 0), (-1.0, -1.5, 0))
+
+
+def s_after_line():
+    new = placed()[state["n3"]:]
+    lines = [o for o in new if o.type == 'CURVE']
+    copies = [o for o in new if o.type != 'CURVE']
+    check("connect centers: one curve per stroke", len(lines) == 1 and len(copies) >= 2,
+          f"{len(lines)} curves, {len(copies)} copies")
+    if lines:
+        sp = lines[0].data.splines[0]
+        check("curve runs through the copies' centers in order",
+              len(sp.bezier_points) == len(copies)
+              and all((bp.co - o.location).length < 1e-4 for bp, o in zip(sp.bezier_points, copies)))
+        check("curve has the thickness", abs(lines[0].data.bevel_depth - 0.05) < 1e-6)
+    x, y = to_screen((-2, 2, 0))
+    ev('Z', 'PRESS', x, y, ctrl=True)
+    ev('Z', 'RELEASE', x, y, ctrl=True)
+
+
+def s_after_line_undo():
+    check("Ctrl+Z takes the curve away with its copies", len(placed()) == state["n3"],
+          f"{len(placed())} vs {state['n3']}")
     x, y = to_screen((-2, 2, 0))
     ev('ESC', 'PRESS', x, y)
     ev('ESC', 'RELEASE', x, y)
@@ -133,9 +160,11 @@ def s_after_esc():
     check("Esc ends the brush and keeps the copies", len(placed()) == state["n3"])
     undone = [o for o in bpy.data.objects if o.users_collection == () and o.name != "BrushSource"]
     check("undone copies are deleted on exit (no orphans)", not undone, str([o.name for o in undone][:3]))
+    check("the undone curve's data is deleted too", not [c for c in bpy.data.curves if c.users == 0])
 
 
-steps = [s_setup, s_stroke1, s_after1, s_after2, s_after_undo, s_after_grid, s_after_sidebar, s_after_esc]
+steps = [s_setup, s_stroke1, s_after1, s_after2, s_after_undo, s_after_grid, s_after_sidebar,
+         s_after_line, s_after_line_undo, s_after_esc]
 
 
 def tick():

@@ -5,7 +5,10 @@ logic.py (GUI-free):
   instance_rotation(normal, stroke_dir, align_to_normal, align_to_stroke, spin) -> Quaternion
   depth_fallback(origin, direction, last_depth, cursor) -> Vector
   place_instance(context, source, location, rotation, scale, collection) -> Object
-  StrokeHistory: begin() / add(obj) / end() / undo(collection) / redo(collection) / purge()
+  nearest_chain(points, start) -> [index]    (nearest-neighbour walk)
+  centers_curve(points, collection, smooth, bevel_depth, cyclic) -> Object or None
+  link_beads / line_beads / find_line / set_follow(context, line, 'NONE'|'OBJECTS'|'CURVE')
+  StrokeHistory: begin() / add(obj) / current() / end() / undo(collection) / redo(collection) / purge()
     (undone copies that can no longer be redone are deleted, never left as orphans)
 The modal brush itself is checked by tests/gui/gui_object_brush.py.
 """
@@ -44,7 +47,9 @@ def test_registered():
     check("panel in the Sculpt tab", p is not None and p.bl_category == submodule("core.tabs").SCULPT)
     pkg = package() + ".modules.object_brush"
     ops = [c.bl_idname for c in bpy.types.Operator.__subclasses__() if c.__module__.startswith(pkg)]
-    check("only one operator (the source picker has an eyedropper)", ops == ["object.sts_object_brush"], str(ops))
+    check("brush / connect-selected / follow operators only (the source picker has an eyedropper)",
+          sorted(ops) == ["object.sts_connect_selected", "object.sts_line_follow", "object.sts_object_brush"],
+          str(ops))
     check("old tab 'Tool' not used", p is not None and p.bl_category != "Tool")
 
 
@@ -61,7 +66,8 @@ def test_settings():
         check(f"{name} is a length", P[name].unit == 'LENGTH', P[name].unit)
     for name in ("brush_object", "brush_collection", "use_output_collection", "target_collection",
                  "new_collection_name", "base_scale", "use_pressure", "align_to_normal",
-                 "align_to_stroke", "jitter_scale"):
+                 "align_to_stroke", "jitter_scale", "connect_centers", "line_smooth",
+                 "line_cyclic", "line_thickness"):
         check(f"setting {name}", name in P)
 
 
@@ -165,6 +171,149 @@ def test_stroke_history():
     check("empty stroke is not recorded", h2.undo(col) is False)
 
 
+def test_centers_curve():
+    col = bpy.data.collections.new("Out")
+    bpy.context.scene.collection.children.link(col)
+    L = logic()
+    pts = [Vector((0, 0, 0)), Vector((1, 0, 0)), Vector((2, 1, 0)), Vector((3, 1, 1))]
+    check("fewer than 2 points -> no curve", L.centers_curve(pts[:1], col) is None)
+    line = L.centers_curve(pts, col, smooth=True, bevel_depth=0.1)
+    sp = line.data.splines[0]
+    check("smooth -> one Bezier spline", line.type == 'CURVE' and sp.type == 'BEZIER')
+    check("passes through every center", all(near(bp.co, p) for bp, p in zip(sp.bezier_points, pts))
+          and len(sp.bezier_points) == 4)
+    check("bevel depth = thickness", abs(line.data.bevel_depth - 0.1) < 1e-6)
+    check("3D curve, linked to the collection", line.data.dimensions == '3D' and line.name in col.objects)
+    line = L.centers_curve(pts, col, smooth=False, cyclic=True)
+    sp = line.data.splines[0]
+    check("not smooth -> POLY spline through the centers",
+          sp.type == 'POLY' and all(near(p.co.xyz, q) for p, q in zip(sp.points, pts)))
+    check("cyclic closes the line", sp.use_cyclic_u)
+    # the line rides on the stroke history: undo / redo / purge handle it too
+    h = L.StrokeHistory()
+    h.begin()
+    bpy.ops.mesh.primitive_cube_add()
+    src = bpy.context.object
+    for p in pts:
+        h.add(L.place_instance(bpy.context, src, p, Quaternion(), 1.0, col))
+    check("current() lists the stroke's copies", [o.location for o in h.current()] == pts)
+    line = L.centers_curve([o.location for o in h.current()], col)
+    h.add(line)
+    h.end()
+    name, data = line.name, line.data.name
+    h.undo(col)
+    check("undo takes the line away with the copies", name not in col.objects)
+    h.redo(col)
+    check("redo brings the line back", name in col.objects)
+    h.undo(col)
+    h.purge()
+    check("purge deletes the line and its curve data",
+          name not in bpy.data.objects and data not in bpy.data.curves)
+
+
+def test_nearest_chain():
+    f = logic().nearest_chain
+    pts = [Vector((0, 0, 0)), Vector((5, 0, 0)), Vector((1, 0, 0)), Vector((3, 0, 0))]
+    check("walks to the closest point each step", f(pts, 0) == [0, 2, 3, 1], str(f(pts, 0)))
+    check("starts where asked", f(pts, 1) == [1, 3, 2, 0], str(f(pts, 1)))
+    check("empty -> []", f([]) == [])
+
+
+def test_connect_selected():
+    for o in list(bpy.data.objects):
+        bpy.data.objects.remove(o)
+    objs = []
+    for name, x in (("B", 4.0), ("A", 0.0), ("C", 1.0)):
+        bpy.ops.mesh.primitive_cube_add(size=0.2, location=(x, 0, 0))
+        bpy.context.object.name = name
+        objs.append(bpy.context.object)
+    for o in objs:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = objs[1]  # A at x=0
+    r = bpy.ops.object.sts_connect_selected(order='NEAREST', thickness=0.03)
+    line = bpy.context.object
+    check("connect selected: finished, the curve is active", r == {'FINISHED'} and line.type == 'CURVE', str(r))
+    xs = [round(bp.co.x, 4) for bp in line.data.splines[0].bezier_points]
+    check("nearest from the active: A(0) -> C(1) -> B(4)", xs == [0.0, 1.0, 4.0], str(xs))
+    check("thickness on the curve", abs(line.data.bevel_depth - 0.03) < 1e-6)
+    line.select_set(False)
+    for o in objs:
+        o.select_set(True)
+    bpy.ops.object.sts_connect_selected(order='NAME', smooth=False)
+    xs = [round(p.co.x, 4) for p in bpy.context.object.data.splines[0].points]
+    check("name order: A(0) -> B(4) -> C(1), straight", xs == [0.0, 4.0, 1.0], str(xs))
+    for o in bpy.data.objects:
+        o.select_set(False)
+    objs[0].select_set(True)
+    check("needs two or more selected", not bpy.ops.object.sts_connect_selected.poll())
+
+
+def _min_dist(obj, co):
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = obj.evaluated_get(dg)
+    me = ev.to_mesh()
+    d = min((obj.matrix_world @ v.co - Vector(co)).length for v in me.vertices)
+    ev.to_mesh_clear()
+    return d
+
+
+def test_follow_modes():
+    for o in list(bpy.data.objects):
+        bpy.data.objects.remove(o)
+    objs = []
+    for name, x in (("A", 0.0), ("B", 2.0), ("C", 4.0)):
+        bpy.ops.mesh.primitive_cube_add(size=0.2, location=(x, 0, 0))
+        bpy.context.object.name = name
+        objs.append(bpy.context.object)
+    for o in objs:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = objs[0]
+    bpy.ops.object.sts_connect_selected(order='NAME')
+    line = bpy.context.object
+    L = logic()
+    check("the line remembers its objects", [o.name for _i, o in L.line_beads(line)] == ["A", "B", "C"])
+    check("a bead finds its line", L.find_line(objs[1]) == line)
+    line.location = (0, 0, 1)        # the line's own transform must not matter
+    objs[1].location.z = 1.0         # (beads sit at z=0 / 1 from here on)
+    for o in objs:
+        o.location.z = 1.0
+    bpy.context.view_layer.update()
+
+    bpy.context.view_layer.objects.active = objs[1]   # works from a bead too
+    r = bpy.ops.object.sts_line_follow(mode='OBJECTS')
+    check("OBJECTS: finished", r == {'FINISHED'}, str(r))
+    check("OBJECTS: one hook per bead", len([m for m in line.modifiers if m.type == 'HOOK']) == 3)
+    check("OBJECTS: switching does not move the curve", _min_dist(line, (2, 0, 1)) < 1e-3,
+          str(_min_dist(line, (2, 0, 1))))
+    objs[1].location = (2, 3, 2)
+    bpy.context.view_layer.update()
+    check("OBJECTS: moving an object pulls the curve", _min_dist(line, (2, 3, 2)) < 1e-3,
+          str(_min_dist(line, (2, 3, 2))))
+
+    bpy.ops.object.sts_line_follow(mode='CURVE')
+    check("CURVE: hooks gone", not [m for m in line.modifiers if m.type == 'HOOK'])
+    check("CURVE: the curve kept the pulled shape", _min_dist(line, (2, 3, 2)) < 1e-3)
+    check("CURVE: objects did not jump", (objs[1].matrix_world.translation - Vector((2, 3, 2))).length < 1e-4,
+          str(objs[1].matrix_world.translation))
+    check("CURVE: objects vertex-parented", all(o.parent == line and o.parent_type == 'VERTEX' for o in objs))
+    bp = line.data.splines[0].bezier_points[2]
+    bp.co = bp.co + Vector((0, 0, 5))
+    bpy.context.view_layer.update()
+    check("CURVE: moving a point carries its object", abs(objs[2].matrix_world.translation.z - 6.0) < 1e-4,
+          str(objs[2].matrix_world.translation))
+    check("CURVE: the others stay", abs(objs[0].matrix_world.translation.z - 1.0) < 1e-4)
+
+    bpy.ops.object.sts_line_follow(mode='NONE')
+    check("NONE: unparented, kept in place",
+          objs[2].parent is None and abs(objs[2].matrix_world.translation.z - 6.0) < 1e-4,
+          str(objs[2].matrix_world.translation))
+    check("NONE: mode stored", line["sts_follow"] == 'NONE')
+    bpy.data.objects.remove(objs[1])
+    check("a deleted bead is skipped", [o.name for _i, o in L.line_beads(line)] == ["A", "C"])
+    bpy.context.view_layer.objects.active = line
+    check("switching still works without it", bpy.ops.object.sts_line_follow(mode='OBJECTS') == {'FINISHED'})
+
+
 def test_poll():
     check("poll fails without a 3D view (background)", not bpy.ops.object.sts_object_brush.poll())
 
@@ -178,5 +327,9 @@ run([
     test_depth_fallback,
     test_place_instance_ignores_parent,
     test_stroke_history,
+    test_centers_curve,
+    test_nearest_chain,
+    test_connect_selected,
+    test_follow_modes,
     test_poll,
 ])

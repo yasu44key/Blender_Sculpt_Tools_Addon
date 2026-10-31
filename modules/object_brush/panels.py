@@ -1,9 +1,10 @@
 """Sculpt tab panel for Object Brush."""
 
 import bpy
+from bpy.app.translations import pgettext_iface as iface_
 
 from ...core import tabs
-from . import ops
+from . import logic, ops
 
 
 class VIEW3D_PT_sts_object_brush(bpy.types.Panel):
@@ -56,6 +57,29 @@ class VIEW3D_PT_sts_object_brush(bpy.types.Panel):
         row.prop(s, "jitter_x")
         row.prop(s, "jitter_y")
         row.prop(s, "jitter_z")
+
+        box = layout.box()
+        col = box.column(align=True)
+        col.prop(s, "connect_centers")
+        sub = col.column(align=True)
+        sub.active = s.connect_centers
+        row = sub.row(align=True)
+        row.prop(s, "line_smooth", toggle=True)
+        row.prop(s, "line_cyclic", toggle=True)
+        sub.prop(s, "line_thickness")
+        col.operator("object.sts_connect_selected", icon='CURVE_PATH')
+
+        line = logic.find_line(context.view_layer.objects.active)
+        if line is not None:
+            current = line.get("sts_follow", 'NONE')
+            col = box.column(align=True)
+            col.label(text=iface_("Follow") + ": " + line.name, icon='LINKED')
+            for mode, text, icon in (('OBJECTS', "Curve Follows Objects", 'OBJECT_DATA'),
+                                     ('CURVE', "Objects Follow Curve", 'CURVE_DATA'),
+                                     ('NONE', "Off", 'UNLINKED')):
+                op = col.operator("object.sts_line_follow", text=text, icon=icon,
+                                  depress=(current == mode))
+                op.mode = mode
 
         layout.use_property_split = False
         col = layout.column(align=True)

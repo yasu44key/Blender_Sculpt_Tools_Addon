@@ -117,6 +117,24 @@ class ObjectBrushSettings(bpy.types.PropertyGroup):
         description="Random offset along the copy's Z axis (the normal)",
     )
 
+    connect_centers: bpy.props.BoolProperty(
+        name="Connect Centers", default=False,
+        description="At the end of each stroke, add a curve through the centers of its copies "
+                    "(give it a thickness to string beads)",
+    )
+    line_smooth: bpy.props.BoolProperty(
+        name="Smooth Line", default=True,
+        description="Bend the curve softly through the centers (off: straight segments)",
+    )
+    line_cyclic: bpy.props.BoolProperty(
+        name="Close Line", default=False,
+        description="Join the last center back to the first (a ring)",
+    )
+    line_thickness: bpy.props.FloatProperty(
+        name="Line Thickness", default=0.0, min=0.0, unit='LENGTH',
+        description="Radius of the curve (the curve's Bevel Depth; 0 = a plain line)",
+    )
+
 
 class OBJECT_OT_sts_object_brush(bpy.types.Operator):
     """Drag in the 3D view to place copies of the brush source on surfaces"""
@@ -184,7 +202,7 @@ class OBJECT_OT_sts_object_brush(bpy.types.Operator):
                     return {'PASS_THROUGH'}  # release of a click the sidebar handled
                 self._painting = False
                 self._last_pos = None
-                self._history.end()
+                self._end_stroke(s)
                 return {'RUNNING_MODAL'}
             return {'RUNNING_MODAL'}
 
@@ -302,10 +320,22 @@ class OBJECT_OT_sts_object_brush(bpy.types.Operator):
         obj = logic.place_instance(context, source, location + q @ offset, q, scale, self._col)
         self._history.add(obj)
 
+    def _end_stroke(self, s):
+        """Close the stroke; with Connect Centers its curve joins the stroke
+        (so Ctrl+Z / Ctrl+Shift+Z take the line away / back with the copies)."""
+        if s.connect_centers:
+            copies = self._history.current()
+            line = logic.centers_curve([o.location for o in copies], self._col,
+                                       s.line_smooth, s.line_thickness, s.line_cyclic)
+            if line is not None:
+                logic.link_beads(line, copies)
+                self._history.add(line)
+        self._history.end()
+
     def _end(self, context):
         if self._painting:
             self._painting = False
-            self._history.end()
+            self._end_stroke(context.scene.sts_object_brush)
         self._ended = True
         self._history.purge()  # copies that can no longer be redone are deleted
         if context.area:
@@ -318,13 +348,104 @@ class OBJECT_OT_sts_object_brush(bpy.types.Operator):
             self._ended = True
             if self._painting:
                 self._painting = False
-                self._history.end()
+                self._end_stroke(context.scene.sts_object_brush)
             self._history.purge()
             if context.area:
                 context.area.header_text_set(None)
 
 
+class OBJECT_OT_sts_connect_selected(bpy.types.Operator):
+    """Add a curve through the centers of the selected objects"""
+    bl_idname = "object.sts_connect_selected"
+    bl_label = "Connect Selected"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    order: bpy.props.EnumProperty(
+        name="Order",
+        items=(
+            ('NEAREST', "Nearest", "From the active object, always on to the closest one not joined yet"),
+            ('NAME', "Name", "In name order (brush copies: the order they were placed)"),
+        ),
+        default='NEAREST',
+        description="Which center comes after which (Blender keeps no click order for objects)",
+    )
+    smooth: bpy.props.BoolProperty(
+        name="Smooth Line", default=True,
+        description="Bend the curve softly through the centers (off: straight segments)",
+    )
+    cyclic: bpy.props.BoolProperty(
+        name="Close Line", default=False,
+        description="Join the last center back to the first (a ring)",
+    )
+    thickness: bpy.props.FloatProperty(
+        name="Line Thickness", default=0.0, min=0.0, unit='LENGTH',
+        description="Radius of the curve (the curve's Bevel Depth; 0 = a plain line)",
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'OBJECT' and len(context.selected_objects) >= 2
+
+    def invoke(self, context, event):
+        s = context.scene.sts_object_brush  # start from the brush's line settings
+        self.smooth, self.cyclic, self.thickness = s.line_smooth, s.line_cyclic, s.line_thickness
+        return self.execute(context)
+
+    def execute(self, context):
+        objs = list(context.selected_objects)
+        if len(objs) < 2:
+            self.report({'WARNING'}, "Select two or more objects")
+            return {'CANCELLED'}
+        objs.sort(key=lambda o: o.name)  # NAME order; for NEAREST a stable start for ties
+        if self.order == 'NEAREST':
+            active = context.view_layer.objects.active
+            start = objs.index(active) if active in objs else 0
+            pts = [o.matrix_world.translation for o in objs]
+            objs = [objs[i] for i in logic.nearest_chain(pts, start)]
+        active = context.view_layer.objects.active
+        col = active.users_collection[0] if active and active.users_collection else context.collection
+        line = logic.centers_curve([o.matrix_world.translation for o in objs], col,
+                                   self.smooth, self.thickness, self.cyclic)
+        logic.link_beads(line, objs)
+        for o in context.selected_objects:
+            o.select_set(False)
+        line.select_set(True)
+        context.view_layer.objects.active = line
+        return {'FINISHED'}
+
+
+class OBJECT_OT_sts_line_follow(bpy.types.Operator):
+    """Choose which side of a bead line leads: the objects, the curve, or neither"""
+    bl_idname = "object.sts_line_follow"
+    bl_label = "Follow"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    mode: bpy.props.EnumProperty(
+        name="Follow",
+        items=(
+            ('NONE', "Off", "Nothing follows"),
+            ('OBJECTS', "Curve Follows Objects", "Move an object and the curve point goes with it (Hook modifiers)"),
+            ('CURVE', "Objects Follow Curve", "Edit the curve and the objects ride on its points (vertex parents)"),
+        ),
+        default='NONE',
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'OBJECT' and logic.find_line(context.view_layer.objects.active) is not None
+
+    def execute(self, context):
+        line = logic.find_line(context.view_layer.objects.active)
+        if not logic.line_beads(line):
+            self.report({'WARNING'}, "The objects of this line are gone")
+            return {'CANCELLED'}
+        logic.set_follow(context, line, self.mode)
+        return {'FINISHED'}
+
+
 classes = (
     ObjectBrushSettings,
     OBJECT_OT_sts_object_brush,
+    OBJECT_OT_sts_connect_selected,
+    OBJECT_OT_sts_line_follow,
 )
