@@ -131,7 +131,7 @@ class ObjectBrushSettings(bpy.types.PropertyGroup):
         description="Join the last center back to the first (a ring)",
     )
     line_thickness: bpy.props.FloatProperty(
-        name="Line Thickness", default=0.0, min=0.0, unit='LENGTH',
+        name="Curve Radius", default=0.0, min=0.0, unit='LENGTH',
         description="Radius of the curve (the curve's Bevel Depth; 0 = a plain line)",
     )
 
@@ -363,7 +363,7 @@ class OBJECT_OT_sts_connect_selected(bpy.types.Operator):
     order: bpy.props.EnumProperty(
         name="Order",
         items=(
-            ('NEAREST', "Nearest", "From the active object, always on to the closest one not joined yet"),
+            ('NEAREST', "Nearest First", "From the active object, always on to the closest one not joined yet"),
             ('NAME', "Name", "In name order (brush copies: the order they were placed)"),
         ),
         default='NEAREST',
@@ -378,7 +378,7 @@ class OBJECT_OT_sts_connect_selected(bpy.types.Operator):
         description="Join the last center back to the first (a ring)",
     )
     thickness: bpy.props.FloatProperty(
-        name="Line Thickness", default=0.0, min=0.0, unit='LENGTH',
+        name="Curve Radius", default=0.0, min=0.0, unit='LENGTH',
         description="Radius of the curve (the curve's Bevel Depth; 0 = a plain line)",
     )
 
